@@ -7,7 +7,7 @@
   become: yes
   file:
     path: '{{ item.webroot }}'
-    owner: '{{ item.user | default(certbot_auto_renew_user) }}'
+    owner: '{{ item.webroot_owner | default(certbot_auto_renew_user) }}'
     state: 'directory'
     mode: '0755'
   with_items: '{{ certbot_certificates }}'
@@ -73,5 +73,5 @@
     minute: '{{ certbot_auto_renew_minute }}'
     hour: '{{ certbot_auto_renew_hour }}'
     user: '{{ certbot_auto_renew_user }}'
-  when: 'certbot_auto_renew'
+    state: '{{ certbot_auto_renew | ternary("present", "absent") }}'
   with_items: '{{ certbot_certificates }}'
