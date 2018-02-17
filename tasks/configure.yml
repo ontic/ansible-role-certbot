@@ -28,7 +28,7 @@
 
 - name: 'Certbot | Count the number of missing certificates.'
   set_fact:
-    certbot_missing_certificate_count: 'certbot_certificate_paths.results | selectattr("stat", "defined") | map(attribute="stat") | selectattr("exists", "equalto", false) | list | length'
+    certbot_missing_certificate_count: '{{ certbot_certificate_paths.results | selectattr("stat", "defined") | map(attribute="stat") | selectattr("exists", "equalto", false) | list | length }}'
 
 - name: 'Certbot | Stop web server before generating certificates.'
   become: yes
