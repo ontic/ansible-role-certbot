@@ -1,0 +1,17 @@
+# Copyright (c) Ontic. (http://www.ontic.com.au). All rights reserved.
+# See the COPYING file bundled with this package for license details.
+
+---
+
+certbot_install_from_source: yes
+certbot_source_update: yes
+certbot_source_path: '/opt/certbot'
+certbot_source_repo: 'https://github.com/certbot/certbot.git'
+certbot_source_version: 'master'
+certbot_web_server_service_name: 'nginx'
+certbot_auto_renew: yes
+certbot_auto_renew_hook: 'service {{ certbot_web_server_service_name }} reload'
+certbot_auto_renew_user: '{{ ansible_user }}'
+certbot_auto_renew_hour: 3
+certbot_auto_renew_minute: 30
+certbot_certificates: []

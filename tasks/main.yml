@@ -1,0 +1,44 @@
+# Copyright (c) Ontic. (http://www.ontic.com.au). All rights reserved.
+# See the COPYING file bundled with this package for license details.
+
+---
+
+- name: 'Certbot | Include OS-specific variables.'
+  include_vars: '{{ item }}'
+  with_first_found:
+    - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+    - '{{ ansible_distribution }}.yml'
+    - '{{ ansible_os_family }}.yml'
+    - 'default.yml'
+  tags:
+    - 'certbot'
+    - 'certbot-package'
+    - 'certbot-configure'
+    - 'certbot-service'
+    - 'package'
+    - 'configure'
+    - 'service'
+
+- name: 'Certbot | Define Certbot script.'
+  set_fact:
+    certbot_script: '{{ certbot_package if not certbot_install_from_source else certbot_source_path + "/certbot-auto" }}'
+  tags:
+    - 'certbot'
+    - 'certbot-package'
+    - 'certbot-configure'
+    - 'certbot-service'
+    - 'package'
+    - 'configure'
+    - 'service'
+
+- include_tasks: 'package.yml'
+  tags:
+    - 'certbot'
+    - 'certbot-package'
+    - 'package'
+
+- include_tasks: 'configure.yml'
+  tags:
+    - 'certbot'
+    - 'certbot-configure'
+    - 'configure'

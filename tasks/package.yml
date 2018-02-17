@@ -1,0 +1,28 @@
+# Copyright (c) Ontic. (http://www.ontic.com.au). All rights reserved.
+# See the COPYING file bundled with this package for license details.
+
+---
+
+- name: 'Certbot | Install Certbot package.'
+  become: yes
+  package:
+    name: '{{ certbot_package }}'
+    state: 'present'
+  when: 'not certbot_install_from_source'
+
+- name: 'Certbot | Install Certbot from source.'
+  become: yes
+  git:
+    repo: '{{ certbot_source_repo }}'
+    dest: '{{ certbot_source_path }}'
+    version: '{{ certbot_source_version }}'
+    update: '{{ certbot_source_update }}'
+    force: yes
+  when: 'certbot_install_from_source'
+
+- name: 'Certbot | Ensure Certbot script is executable.'
+  become: yes
+  file:
+    path: '{{ certbot_script }}'
+    mode: '0755'
+  when: 'certbot_install_from_source'

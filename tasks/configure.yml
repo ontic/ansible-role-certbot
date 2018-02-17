@@ -1,0 +1,68 @@
+# Copyright (c) Ontic. (http://www.ontic.com.au). All rights reserved.
+# See the COPYING file bundled with this package for license details.
+
+---
+
+- name: 'Certbot | Determine whether a web server is running.'
+  become: yes
+  command: 'lsof -i :80'
+  register: 'certbot_web_server_running'
+  failed_when: false
+  changed_when: false
+
+- name: 'Certbot | Check whether certificates exists.'
+  become: yes
+  stat:
+    path: '/etc/letsencrypt/live/{{ item.domains | first }}/cert.pem'
+  register: 'certbot_certificate_paths'
+  with_items: '{{ certbot_certificates }}'
+
+- name: 'Certbot | Count the number of missing certificates.'
+  set_fact:
+    certbot_missing_certificate_count: 'certbot_certificate_paths.results | selectattr("stat", "defined") | map(attribute="stat") | selectattr("exists", "equalto", false) | list | length'
+
+- name: 'Certbot | Stop web server before generating certificates.'
+  become: yes
+  service:
+    name: '{{ certbot_web_server_service_name }}'
+    state: 'stopped'
+  when:
+    - 'certbot_missing_certificate_count > 0'
+    - 'certbot_web_server_running.rc == 0'
+
+- name: 'Certbot | Generate certificates.'
+  become: yes
+  command: '{{ certbot_script }} certonly --standalone --email {{ item.1.email }} -n --agree-tos --keep -d {{ item.1.domains|join(",") }}'
+  when: 'not certbot_certificate_paths.results[item.0].stat.exists'
+  with_indexed_items: '{{ certbot_certificates }}'
+
+- name: 'Certbot | Start web server after generating certificates.'
+  become: yes
+  service:
+    name: '{{ certbot_web_server_service_name }}'
+    state: 'started'
+  when:
+    - 'certbot_missing_certificate_count > 0'
+    - 'certbot_web_server_running.rc == 0'
+
+- name: 'Certbot | Update certificate domains.'
+  become: yes
+  command: '{{ certbot_script }} certonly --webroot --cert-name {{ item.1.domains | first }} -n -d {{ item.1.domains|join(",") }} -w {{ item.1.webroot }}'
+  register: 'certbot_certificate_update'
+  notify: 'reload web server'
+  when:
+    - 'certbot_certificate_paths.results[item.0].stat.exists'
+    - 'certbot_web_server_running.rc == 0'
+  with_indexed_items: '{{ certbot_certificates }}'
+  changed_when: '"Your certificate and chain have been saved" in certbot_certificate_update.stdout'
+
+- name: 'Certbot | Add cron job for automatic renewal.'
+  become: yes
+  cron:
+    name: 'Certbot automatic renewal of {{ item.domains | first }}'
+    job: '{{ certbot_script }} renew --webroot --cert-name {{ item.domains | first }} -n -w --quiet --no-self-upgrade {{ item.webroot }} --post-hook "{{ certbot_auto_renew_hook }}"'
+    minute: '{{ certbot_auto_renew_minute }}'
+    hour: '{{ certbot_auto_renew_hour }}'
+    user: '{{ certbot_auto_renew_user }}'
+  when: 'certbot_auto_renew'
+  with_items: '{{ certbot_certificates }}'
