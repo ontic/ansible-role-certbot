@@ -36,7 +36,7 @@
     name: '{{ certbot_web_server_service_name }}'
     state: 'stopped'
   when:
-    - 'certbot_missing_certificate_count > 0'
+    - 'certbot_missing_certificate_count | int > 0'
     - 'certbot_web_server_running.rc == 0'
 
 - name: 'Certbot | Generate certificates.'
@@ -51,7 +51,7 @@
     name: '{{ certbot_web_server_service_name }}'
     state: 'started'
   when:
-    - 'certbot_missing_certificate_count > 0'
+    - 'certbot_missing_certificate_count | int > 0'
     - 'certbot_web_server_running.rc == 0'
 
 - name: 'Certbot | Update certificate domains.'
