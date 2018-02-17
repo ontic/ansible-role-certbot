@@ -4,6 +4,7 @@
 ---
 
 - name: 'Certbot | Create web root directories for storing challenges.'
+  become: yes
   file:
     path: '{{ item.webroot }}'
     owner: '{{ item.user | default(certbot_auto_renew_user) }}'
