@@ -3,6 +3,14 @@
 
 ---
 
+- name: 'Certbot | Create web root directories for storing challenges.'
+  file:
+    path: '{{ item.webroot }}'
+    owner: '{{ item.user | default(certbot_auto_renew_user) }}'
+    state: 'directory'
+    mode: '0755'
+  with_items: '{{ certbot_certificates }}'
+
 - name: 'Certbot | Determine whether a web server is running.'
   become: yes
   command: 'lsof -i :80'
