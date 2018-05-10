@@ -9,6 +9,7 @@ certbot_source_path: '/opt/certbot'
 certbot_source_repo: 'https://github.com/certbot/certbot.git'
 certbot_source_version: 'master'
 certbot_web_server_service_name: 'nginx'
+certbot_auto_renew: yes
 certbot_auto_renew_hook: 'service {{ certbot_web_server_service_name }} reload'
 certbot_auto_renew_user: '{{ ansible_user }}'
 certbot_auto_renew_hour: '2'
