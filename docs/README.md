@@ -9,13 +9,13 @@ certbot_source_path: '/opt/certbot'
 certbot_source_repo: 'https://github.com/certbot/certbot.git'
 certbot_source_version: 'master'
 certbot_web_server_service_name: 'nginx'
-certbot_auto_renew: yes
-certbot_auto_renew_user: 'web'
+certbot_auto_renew_user: 'root'
 certbot_auto_renew_hour: '2'
 certbot_auto_renew_minute: '30'
 certbot_certificates:
   - email: 'admin@company.com'
     webroot: '/var/www/html/letsencript'
+    auto_renew: yes
     domains:
       - 'company.com'
       - 'www.company.com'
@@ -66,12 +66,6 @@ The name of the daemon under which your web server runs. Typically this will be 
 which is the default. The service will be gracefully reloaded when a certificate is changed or automatically renewed.
 
 ```
-certbot_auto_renew: yes
-```
-
-Whether a cron job should be created for automatically renewing certificates, valid values are `yes` or `no`.
-
-```
 certbot_auto_renew_hook: 'service {{ certbot_web_server_service_name }} reload'
 ```
 
@@ -103,4 +97,5 @@ A list of certificates to create and manage. Each certificate expects three para
 
 * `email` The email address used to agree to Let's Encrypt's TOS and subscribe to cert-related notifications.
 * `webroot` The directory path Let's Encrypt's challenge files will be saved to.
+* `auto_renew` Whether a cron job should be created for automatically renewing certificates, valid values are `yes` or `no`.
 * `domains` A list of domains associated with the certificate, the first domain will be used as the certificate file name.

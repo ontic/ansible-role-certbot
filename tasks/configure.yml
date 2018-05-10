@@ -69,9 +69,9 @@
   become: yes
   cron:
     name: 'Certbot automatic renewal of {{ item.domains | first }}'
-    job: '{{ certbot_script }} renew --webroot --cert-name {{ item.domains | first }} -n -w --quiet --no-self-upgrade {{ item.webroot }} --post-hook "{{ certbot_auto_renew_hook }}"'
+    job: '{{ certbot_script }} renew --webroot --cert-name {{ item.domains | first }} -n --quiet --no-self-upgrade -w {{ item.webroot }} --post-hook "{{ certbot_auto_renew_hook }}"'
     minute: '{{ certbot_auto_renew_minute }}'
     hour: '{{ certbot_auto_renew_hour }}'
     user: '{{ certbot_auto_renew_user }}'
-    state: '{{ certbot_auto_renew | ternary("present", "absent") }}'
+    state: '{{ item.auto_renew | ternary("present", "absent") }}'
   with_items: '{{ certbot_certificates }}'
