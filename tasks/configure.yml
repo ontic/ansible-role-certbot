@@ -73,5 +73,5 @@
     minute: '{{ certbot_auto_renew_minute }}'
     hour: '{{ certbot_auto_renew_hour }}'
     user: '{{ certbot_auto_renew_user }}'
-    state: '{{ item.auto_renew | default(certbot_auto_renew) | ternary("present", "absent") }}'
+    state: '{{ certbot_auto_renew | ternary("present", "absent") }}'
   with_items: '{{ certbot_certificates }}'
