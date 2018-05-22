@@ -31,13 +31,13 @@
     - 'configure'
     - 'service'
 
-- include_tasks: 'package.yml'
+- import_tasks: 'package.yml'
   tags:
     - 'certbot'
     - 'certbot-package'
     - 'package'
 
-- include_tasks: 'configure.yml'
+- import_tasks: 'configure.yml'
   tags:
     - 'certbot'
     - 'certbot-configure'
