@@ -39,7 +39,7 @@
     - 'certbot_missing_certificate_count | int > 0'
     - 'certbot_web_server_running.rc == 0'
 
-- name: 'Certbot | Generate certificates.'
+- name: 'Certbot | Generate standalone certificates.'
   become: yes
   command: '{{ certbot_script }} certonly --standalone --email {{ item.1.email }} -n --agree-tos --keep -d {{ item.1.domains|join(",") }}'
   when: 'not certbot_certificate_paths.results[item.0].stat.exists'
@@ -54,14 +54,11 @@
     - 'certbot_missing_certificate_count | int > 0'
     - 'certbot_web_server_running.rc == 0'
 
-- name: 'Certbot | Update certificate domains.'
+- name: 'Certbot | Update certificate authenticator and domains.'
   become: yes
   command: '{{ certbot_script }} certonly --webroot --cert-name {{ item.1.domains | first | replace("*.", "") }} -n -d {{ item.1.domains|join(",") }} -w {{ item.1.webroot }}'
   register: 'certbot_certificate_update'
   notify: 'reload web server'
-  when:
-    - 'certbot_certificate_paths.results[item.0].stat.exists'
-    - 'certbot_web_server_running.rc == 0'
   with_indexed_items: '{{ certbot_certificates }}'
   changed_when: '"Your certificate and chain have been saved" in certbot_certificate_update.stdout'
 
