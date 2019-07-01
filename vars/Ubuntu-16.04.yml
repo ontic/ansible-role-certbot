@@ -4,3 +4,4 @@
 ---
 
 certbot_package: 'letsencrypt'
+certbot_named_certificates: []

@@ -4,3 +4,4 @@
 ---
 
 certbot_package: 'certbot'
+certbot_named_certificates: []
