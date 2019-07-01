@@ -31,6 +31,37 @@
     - 'configure'
     - 'service'
 
+- name: 'Certbot | Define Certbot renewal options.'
+  set_fact:
+    certbot_renewal_options:
+      - section: 'renewalparams'
+        option: 'authenticator'
+        value: 'webroot'
+      - section: 'renewalparams'
+        option: 'post_hook'
+        value: 'service {{ certbot_web_server_service_name }} reload'
+  tags:
+    - 'certbot'
+    - 'certbot-package'
+    - 'certbot-configure'
+    - 'certbot-service'
+    - 'package'
+    - 'configure'
+    - 'service'
+
+- name: 'Certbot | Define file name for certificates.'
+  set_fact:
+    certbot_named_certificates: '{{ certbot_named_certificates|default([]) + [ {"email": item.email, "webroot": item.webroot, "webroot_owner": item.webroot_owner, "domains": item.domains, "file_name": item.domains | first | replace("*.", "")} ] }}'
+  with_items: '{{ certbot_certificates }}'
+  tags:
+    - 'certbot'
+    - 'certbot-package'
+    - 'certbot-configure'
+    - 'certbot-service'
+    - 'package'
+    - 'configure'
+    - 'service'
+
 - import_tasks: 'package.yml'
   tags:
     - 'certbot'

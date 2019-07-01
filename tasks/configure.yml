@@ -10,7 +10,7 @@
     owner: '{{ item.webroot_owner | default(certbot_auto_renew_user) }}'
     state: 'directory'
     mode: '0755'
-  with_items: '{{ certbot_certificates }}'
+  with_items: '{{ certbot_named_certificates }}'
 
 - name: 'Certbot | Determine whether a web server is running.'
   become: yes
@@ -22,9 +22,9 @@
 - name: 'Certbot | Check whether certificates exists.'
   become: yes
   stat:
-    path: '/etc/letsencrypt/live/{{ item.domains | first | replace("*.", "") }}/cert.pem'
+    path: '/etc/letsencrypt/live/{{ item.file_name }}/cert.pem'
   register: 'certbot_certificate_paths'
-  with_items: '{{ certbot_certificates }}'
+  with_items: '{{ certbot_named_certificates }}'
 
 - name: 'Certbot | Count the number of missing certificates.'
   set_fact:
@@ -43,7 +43,7 @@
   become: yes
   command: '{{ certbot_script }} certonly --standalone --email {{ item.1.email }} -n --agree-tos --keep -d {{ item.1.domains|join(",") }}'
   when: 'not certbot_certificate_paths.results[item.0].stat.exists'
-  with_indexed_items: '{{ certbot_certificates }}'
+  with_indexed_items: '{{ certbot_named_certificates }}'
 
 - name: 'Certbot | Start web server after generating certificates.'
   become: yes
@@ -54,12 +54,57 @@
     - 'certbot_missing_certificate_count | int > 0'
     - 'certbot_web_server_running.rc == 0'
 
-- name: 'Certbot | Update certificate authenticator and domains.'
+- name: 'Certbot | Update certificate renewal options.'
   become: yes
-  command: '{{ certbot_script }} certonly --webroot --cert-name {{ item.1.domains | first | replace("*.", "") }} -n -d {{ item.1.domains|join(",") }} -w {{ item.1.webroot }}'
+  ini_file:
+    dest: '/etc/letsencrypt/renewal/{{ item.0.file_name }}.conf'
+    section: '{{ item.1.section }}'
+    option: '{{ item.1.option }}'
+    value: '{{ item.1.value }}'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    create: no
+  with_nested:
+    - '{{ certbot_named_certificates }}'
+    - '{{ certbot_renewal_options }}'
+
+- name: 'Certbot | Clear certificate webroot map.'
+  become: yes
+  ini_file:
+    dest: '/etc/letsencrypt/renewal/{{ item.file_name }}.conf'
+    section: '[webroot_map]'
+    state: 'absent'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    create: no
+  changed_when: false
+  with_items: '{{ certbot_named_certificates }}'
+
+- name: 'Certbot | Create certificate webroot map.'
+  become: yes
+  ini_file:
+    dest: '/etc/letsencrypt/renewal/{{ item.0.file_name }}.conf'
+    section: '[webroot_map]'
+    option: '{{ item.1 }}'
+    value: '{{ item.0.webroot }}'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    create: no
+  changed_when: false
+  with_subelements:
+    - '{{ certbot_named_certificates }}'
+    - 'domains'
+
+- name: 'Certbot | Update certificates not previously created.'
+  become: yes
+  command: '{{ certbot_script }} certonly --webroot --cert-name {{ item.1.file_name }} -n -d {{ item.1.domains|join(",") }} -w {{ item.1.webroot }}'
   register: 'certbot_certificate_update'
   notify: 'reload web server'
-  with_indexed_items: '{{ certbot_certificates }}'
+  when: 'certbot_certificate_paths.results[item.0].stat.exists'
+  with_indexed_items: '{{ certbot_named_certificates }}'
   changed_when: '"Your certificate and chain have been saved" in certbot_certificate_update.stdout'
 
 - name: 'Certbot | Add cron job for automatic renewal.'
