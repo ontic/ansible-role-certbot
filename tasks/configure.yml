@@ -111,7 +111,7 @@
   become: yes
   cron:
     name: 'Certbot automatic renewal'
-    job: '{{ certbot_script }} renew --quiet --no-self-upgrade'
+    job: '{{ certbot_script }} {{ certbot_auto_renew_command }}'
     minute: '{{ certbot_auto_renew_minute }}'
     hour: '{{ certbot_auto_renew_hour }}'
     user: '{{ certbot_auto_renew_user }}'
