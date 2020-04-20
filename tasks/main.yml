@@ -38,7 +38,7 @@
         option: 'authenticator'
         value: 'webroot'
       - section: 'renewalparams'
-        option: 'post_hook'
+        option: 'renew_hook'
         value: 'service {{ certbot_web_server_service_name }} reload'
   tags:
     - 'certbot'
